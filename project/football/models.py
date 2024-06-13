@@ -18,7 +18,7 @@ class Group(models.Model):
         'F': 'F'
     }
     name = models.CharField(null=False, max_length=1, choices=GROUP_NAMES)
-    tournament = models.ForeignKey(Tournament, null=True, on_delete=models.DO_NOTHING)
+    tournament = models.ForeignKey(Tournament, null=True, on_delete=models.CASCADE)
 
 
 class Team(models.Model):
@@ -27,8 +27,7 @@ class Team(models.Model):
 
 class Match(models.Model):
 
-    date_format = '%Y-%m-%d'        
-
+    DATE_FORMAT = '%Y-%m-%d'        
     MATCH_TYPES = {
         'PRELIMINARY':'preliminary', 
         'FINALS_8'   : 'finals_8',
@@ -36,18 +35,20 @@ class Match(models.Model):
         'FINALS_2'   : 'finals_2', 
         'FINAL'      : 'final'
     }
+
     date = models.DateField()
     home_team = models.ForeignKey(Team, related_name="home_team", on_delete=models.CASCADE)
     home_goals = models.IntegerField(null=False, default=0)
     away_team = models.ForeignKey(Team, related_name="away_team", on_delete=models.CASCADE)
     away_goals = models.IntegerField(null=False, default=0)
     match_type = models.CharField(null=True, max_length=20, choices=MATCH_TYPES) 
-    tournament = models.ForeignKey(Tournament, null=True, on_delete=models.DO_NOTHING)
+    tournament = models.ForeignKey(Tournament, null=True, on_delete=models.CASCADE)
 
-    def as_dict(self):
+    def serialize(self):
         
         return {
-            "date": self.date.strftime(self.date_format),
+            "id": self.id,
+            "date": self.date.strftime(self.DATE_FORMAT),
             "home_team": self.home_team.name,
             "home_goals": self.home_goals,
             "away_team": self.away_team.name,
@@ -63,5 +64,13 @@ class Bet(models.Model):
     away_goals = models.IntegerField(null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    def serialize(self):
+        
+        return {
+            "match": self.match.id,
+            "home_goals": self.home_goals,
+            "away_goals": self.away_goals,
+            "match_type": self.match_type, 
+        }
 
     

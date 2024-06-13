@@ -76,19 +76,3 @@ class Modal {
 
 overlay.querySelector(".close").addEventListener("click", () => hide(overlay));
 
-const send = async (url, data) =>
-{
-    try {
-        const response = await fetch(url, { method: "POST", body: data});
-        if (response.ok) 
-            return response.json();
-        
-        throw new Error(`HTTP error! Status: ${response.status}`) 
-    }
-    catch (err) 
-    {
-        console.log(err);
-        //toast('Something went wrong. Please try again later.');
-    }
-}
-

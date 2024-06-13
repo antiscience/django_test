@@ -1,0 +1,71 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/football.css' %}">
+{% endblock %}
+
+{% block title %}Football{% endblock %}
+{% block app_name %}Football App{% endblock %}
+
+{% block content %}
+
+<ol id="matchList"></ol>
+
+<form name="betForm" class="hidden">
+    {% csrf_token %}
+    <input type="hidden" name="id" value="" />
+
+    <fieldset class="grid">
+        
+    </fieldset>
+
+    <fieldset class="grid">
+        <input type="number" name="home_goals" min="0" />    
+        <input type="number" name="away_goals" min="0" />    
+    </fieldset>
+
+    <fieldset>
+        <button type="button" name="create" data-url="{% url 'football:create_url' %}">Create bet</button>
+        <button type="button" name="update" data-url="{% url 'football:update_url' %}">Update bet</button>
+        <button type="button" name="delete" data-url="{% url 'football:delete_url' %}">Delete bet</button>
+    </fieldset>
+</form>
+{% endblock %}
+
+{% block app_js %}
+<script defer src="{% static 'js/football.js' %}"></script>
+{% endblock %}
+
+{% block data %}
+{% autoescape off %}
+<script>
+    __data = 
+    { 
+        "matches": {{ matches }},
+        "endpoints": 
+        {
+            "create": "{% url 'football:create_url' %}",
+            "update": "{% url 'football:update_url' %}",
+            "delete": "{% url 'football:delete_url' %}"
+        }
+    }
+</script>
+{% endautoescape %}
+{% endblock %}
+
+{% block templates %}
+<template id ="matchListItem">
+    <article><span class="date"></span>
+        <span class="teams">
+            <span class="home_team"></span>
+            <span class="away_team"></span>
+        </span>
+        <span class="goals">
+            <input type="number" class="home_goals" value="" readonly />
+            <input type="number" class="away_goals" value="" readonly />
+        </span>
+    </article>
+</template>
+{% endblock %}

@@ -1,0 +1,10 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "football",
+            "database": "${workspaceFolder:django_test}/project/db.sqlite3"
+        }
+    ]
+}

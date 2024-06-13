@@ -1,142 +1,128 @@
 //
+
 class Bets
 {
-    form = document.forms.betForm;
-    buttons = this.form.querySelectorAll('button');
-
-    constructor(data)
+    constructor(matches, endpoints)
     {
-        this.tasks = data.tasks;
-        this.sort();
-
-        this.taskList = new TaskList(this);
-        this.modal = new Modal(this.form, 'taskForm');
-
-        for (const btn of this.buttons) 
-            btn.addEventListener('click', e => 
-        {
-            this.commit(e);
-        });
-
-        newTaskButton.addEventListener("click", e => 
-            this.showForm());
-
-        window.addEventListener('keydown', e => 
-            { 
-                if (e.key == "Escape") this.hideForm() 
-            });
+        this.matches = matches;
+        this.endpoints = endpoints;
+        this.View = new MatchList(this.matches);
     }
 
     get(id)
     {
-        return this.tasks.find( item => item.id == id );
-    }
-
-    getIndex(id)
-    {
-        return this.tasks.findIndex( item => item.id == id );
+        return this.matches.find( item => item.id == id );
     }
 
     sort()
     {
-        this.tasks.sort((a, b) => 
-                new Date(a.due_date || null) - new Date(b.due_date || null));
+        this.matches.sort((a, b) => new Date(a.date) - new Date(b.date));
         return this;
     }
 
-    create(task)
+    update(bet)
     {
-        this.tasks.push(task);
-        this.sort();
-        this.taskList.render();
+        const res = this.commit(bet, 'update');
+        if (res == false) 
+            return false;
+        const match = this.get(bet.id);
+        match.bet = [bet.home_goals, bet.away_goals];
+        this.View.update(match.id, bet);
+        return this;
     }
     
-    update(task)
+    create(bet)
     {
-        const index = this.getIndex(task.id);
-        this.tasks[index] = task;
-        this.sort();
-        this.taskList.render();
+        return this.update(bet);
     }
 
-    delete(obj)
+    delete(bet)
     {
-        const index = this.getIndex(obj.id);
-        this.tasks.splice(index, 1);
-        this.taskList.delete(obj.id);
+        const res = this.commit(bet, 'delete');
+        if (res == false) 
+            return false;
+
+        delete this.get(bet.id).bet;
+        this.View.update(bet.id, null);
+        return this;
     }
 
-    async commit(e)
+    async commit(bet, action)
     {
-        e.preventDefault(); 
-        const action = e.target.name;
-        const url = e.target.dataset.url + this.form.id.value;
+        const id = action == "create" ? '' : bet.id; 
+        const url = this.endpoints[action] + id;
+        const json = await (new Request(url, bet).send());
 
-        const data = new FormData(this.form); console.log(...data)
-        const json = await (new Request(url, data).send());
-
-        this.resetForm().hideForm();
-        if ("error" in json) this.showError(json.error);
-            else this[action](this.responseToData(json));
-    }
-
-    responseToData(json) // dummy method
-    {
-        if ('due_date' in json)
-            if (json.due_date == null)
-                json.due_date = '';
-
-        return json;
-    }
-
-    showForm(task)
-    {
-        this.resetForm();
-        if (task)
+        if ("error" in json) 
         {
-            for (const attr in task) 
-                if (attr in this.form && attr != "is_completed") 
-                    this.form[attr].value = task[attr];
-
-            if (task.is_completed) 
-                this.form.is_completed.checked = true;
-
-            this.form.classList.remove('new'); 
+            this.showError(json.error);
+            return false;
         }
-        else 
-            this.form.classList.add('new');
-
-        this.modal.show();
-        return this;
-    }
-
-    resetForm()
-    {
-        this.form.reset();
-        return this;
-    }
-
-    hideForm()
-    {
-        this.modal.hide(false)
-        return this;
+        return true;
     }
 
     showError(json)
     {
         const errors = Object.entries(json)
             .map(e => e[0] + ': ' + e[1].map(m => m.message)
-                .join('')
-            ).join('<br />');
+            .join(''))
+            .join('<br />');
 
         const modal = new Modal(errors, "error");
         modal.show();
         return modal;
     }
 
+
 }
 
-class Matches
+class BetForm
+{
+    form = document.forms.betForm;
+    buttons = this.form.querySelectorAll('button');
+
+    constructor(data)
+    {
+        this.Model = new Bets(data.matches, data.endpoints);
+        this.View = new MatchList(data.matches);
+        this.View.render();
+        this.View.container.querySelectorAll('article')
+            .forEach( item => item.addEventListener('click', e => 
+                this.showForm(e.currentTarget.dataset.id)));
+
+        this.modal = new Modal(this.form, 'betForm');
+        for (const btn of this.buttons) 
+            btn.addEventListener('click', e => 
+                this.buttonEvent(e))
+        window.addEventListener('keydown', e => 
+            { if (e.key == "Escape") this.hideForm() })
+    }
+
+    async buttonEvent(e)
+    {
+        e.preventDefault(); 
+        const action = e.target.name;
+        const data = { "id": this.form.id.value, "home_goals": this.form.home_goals.value, "away_goals": this.form.away_goals.value }; //// FormData
+        this.Model[action](data);
+        this.hideForm();
+    }
+
+    showForm(id)
+    {
+        this.form.id.value = id;
+        this.modal.show();
+        return this;
+    }
+
+    hideForm()
+    {
+        this.modal.hide(false)
+        this.form.reset();        
+        return this;
+    }
+}
+
+class MatchList
 {
     container = document.getElementById("matchList");
     
@@ -147,30 +133,30 @@ class Matches
 
     makeListItem(match)
     {
-        const fields = ["date", "home_team", "away_team", "home_goals", "away_goals"]
         const li = document.createElement('li');
-        const bet = "bet" in match ? [match.bet[0], match.bet[1]] : ['-', '-'];
-        let html = `<article><span class="date">${match.date}</span>
-                    <span class="home_team">${match.home_team}</span>
-                    <span> - </span>
-                    <span class="away_team">${match.away_team}</span>
-                    <span class="home_goals">${bet[0]}</span>
-                    <span> : </span>
-                    <span class="away_goals">${bet[1]}</span>
-                    </article>`;
-        li.innerHTML = html;
-        return li;
-    }
+        const bet = "bet" in match ? match.bet : ['-', '-'];
 
-    add(match)
-    {
-        this.container.insertAdjacentElement("beforeend", this.makeListItem(match));
+        const item = document.getElementById("matchListItem")
+                                                .content
+                                                .cloneNode(true)
+                                                .querySelector('article');
+
+        item.querySelector('.date').textContent = match.date;
+        item.querySelector('.home_team').textContent = match.home_team;
+        item.querySelector('.away_team').textContent = match.away_team;
+        item.querySelector('.home_goals').value = bet[0];
+        item.querySelector('.away_goals').value = bet[1];
+        item.dataset.id = match.id;
+        li.appendChild(item);
+        return li;
     }
 
     render()
     {
         this.container.replaceChildren();
-        this.matches.map( match => this.add(match) );
+        this.matches.forEach( match => 
+            this.container.insertAdjacentElement("beforeend", this.makeListItem(match)) 
+        )
     }
 }
 
@@ -179,7 +165,7 @@ class Request
     constructor(url, data)
     {
         this.url = url;
-        this.data = data;
+        this.data = JSON.stringify(data);
     }
 
     async send()
@@ -198,5 +184,4 @@ class Request
         
 }
 
-(new Matches(__data.matches)).render();
-    
+new BetForm(new Bets(__data.matches, __data.endpoints), new MatchList(__data.matches))
