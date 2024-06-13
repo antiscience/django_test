@@ -1,0 +1,149 @@
+html {
+    font-size: 14px;
+}
+
+body {
+    background-color: #f8f8f8;
+}
+
+body > header {
+    background-color: #ECEFF1;
+}
+
+main {
+    display: flex;
+    margin: 4em auto;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+form textarea {
+    height: 5em;
+}
+
+form [role=group] button {
+    border-radius: 0;
+}
+
+form button[name="create"], form.new button[name="update"], form.new button[name="delete"] {
+    display: none;
+}
+
+form.new button[name="create"], form button[name="update"], form button[name="delete"] {
+    display: initial;
+}
+
+#matchList {
+    width: 50em;
+    max-width: 90%;
+    font-size: 1em;
+    counter-reset: li;
+    list-style-type: none;
+}
+
+#matchList li {
+    position: relative;
+}
+
+#matchList li::before {
+    counter-increment: li;
+    content: counter(li);
+    position: absolute;
+    top: 50%;
+    padding: 0 10px;
+    left: 0;
+    transform: translate(-120%, -50%);
+}
+
+#matchList article {
+    cursor: pointer;
+    background-color: #fff;
+    position: relative;
+    padding: 1em;
+    box-shadow: #E0E0E0 5px 5px 15px 0px;
+    display: table;
+    width: 100%;
+}
+
+#matchList article span {
+    display: table-cell;
+    padding: 5px 10px;
+}
+
+#matchList .home_team, #matchList .away_team {
+    width: 10em;
+    white-space: nowrap;
+    margin: 0 1em;
+    font-weight: 500;
+}
+
+#matchList article .date {
+    width: 1em;
+    white-space: nowrap;
+    font-size: 0.8em;
+    margin-right: 1em;
+    background-color: #f4f4f4;
+    border-radius: 4px;
+}
+
+#matchList .home_goals, #matchList .away_goals {
+    display: inline-block;
+    margin: 0 1em;
+    font-weight: 700;
+}
+
+
+.taskForm {
+    position: fixed;
+    width: 320px;
+    background-color: #eee;
+    bottom: 1em;
+    right: 1em;
+    top: auto;
+    left: auto;
+    transform: translate(0, 0);
+    padding: 2.5em 2em 1em;
+}
+
+.taskForm .close {
+    background-color: #BDBDBD;
+}
+
+.taskForm .close:hover {
+    background-color: #222;
+}
+
+.taskForm fieldset.is_completed {
+    padding: 1em;
+    background-color: #f8f8f8;
+}
+
+.taskForm input[type="checkbox"]:checked {
+    background-color: #66BB6A;
+    border-color: #66BB6A;
+}
+
+
+.taskForm input:not([type=checkbox],[type=radio]), select, textarea {
+    margin-bottom: 0;
+}
+
+#newTaskButton {
+    position: fixed;
+    border-radius: 50%;
+    border-width: 0;
+    bottom: 0;
+    width: 4em;
+    height: 4em;
+    right: 1em;
+    background-color: #1E88E5;
+    z-index: 100;
+    background-image: url("/static/img/add_task.png");
+    background-size: cover;
+    box-shadow: #BDBDBD 8px 8px 11px 0px;
+}
+
+#newTaskButton:hover {
+    background-color: #2196F3;
+}

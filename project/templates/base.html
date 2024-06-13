@@ -1,0 +1,71 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" sizes="any">
+    <link rel="stylesheet" href="{% static 'css/pico.slate.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block css %}{% endblock %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400..800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="overlay" class="hidden">
+      <span href="#" class="close"></span>
+      <div id="overlay-content">
+        <div style="font-size: 24px;">Loading...</div>
+        <div class="loader"></div>
+      </div>
+    </div>
+
+    <header>
+        <h1>{% block app_name %}{% endblock %}</h1> 
+        <div class="links">
+            <a id="faq" class="local" href="/" data-content="faq-txt">F.A.Q.</a>
+            <a id="stats" class="local" href="/"  data-content="stats-txt">About</a>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script defer src="{% static 'js/base.js' %}"></script>
+    {% block app_js %}{% endblock %}
+    
+    <template id ="modalTemplate">
+        <div class="modal">
+            <div class="close"></div>
+            <div class="content"></div>
+        </div>
+    </template>
+
+    <dialog>
+        <article>
+          <header>
+            <button aria-label="Close" rel="prev"></button>
+            <div></div>
+          </header>
+          <div></div>
+          <footer>
+            <button className="secondary">Cancel</button>
+            <button>Confirm</button>
+          </footer>
+        </article>
+    </dialog>
+
+
+    {% block templates %}
+    {% endblock %}
+    
+    {% block data %}
+    {% endblock %}
+    
+</body>
+</html>
