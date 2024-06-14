@@ -52,6 +52,9 @@
         }
     }
 </script>
+<script>
+    __static = {% get_static_prefix %}
+</script>
 {% endautoescape %}
 {% endblock %}
 
@@ -59,8 +62,14 @@
 <template id ="matchListItem">
     <article><span class="date"></span>
         <span class="teams">
-            <span class="home_team"></span>
-            <span class="away_team"></span>
+            <span class="team">
+                <span class="home_team_name"></span>
+                <span class="home_team_flag"></span>
+            </span>
+            <span class="team">
+                <span class="away_team_name"></span>
+                <span class="away_team_flag"></span>
+            </span>
         </span>
         <span class="goals">
             <input type="text" class="home_goals" value="" readonly />

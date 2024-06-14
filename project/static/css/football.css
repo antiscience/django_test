@@ -66,12 +66,17 @@ form.new button[name="create"], form button[name="update"], form button[name="de
     width: 100%;
 }
 
-#matchList article span {
+#matchList article > span {
     display: table-cell;
     padding: 5px 10px;
 }
 
-#matchList .home_team, #matchList .away_team {
+#matchList .teams {
+    white-space: nowrap;
+    width: 80%;
+}
+
+#matchList .team {
     width: 10em;
     white-space: nowrap;
     margin: 0 1em;
@@ -85,6 +90,11 @@ form.new button[name="create"], form button[name="update"], form button[name="de
     margin-right: 1em;
     background-color: #f4f4f4;
     border-radius: 4px;
+}
+
+#matchList .goals {
+    white-space: nowrap;
+    width: 10%;
 }
 
 #matchList .home_goals, #matchList .away_goals {

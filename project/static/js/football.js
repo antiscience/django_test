@@ -125,8 +125,8 @@ class MatchList
                                                 .querySelector('article');
 
         item.querySelector('.date').textContent = match.date;
-        item.querySelector('.home_team').textContent = match.home_team;
-        item.querySelector('.away_team').textContent = match.away_team;
+        item.querySelector('.home_team_name').textContent = match.home_team.name;
+        item.querySelector('.away_team_name').textContent = match.away_team.name;
         item.querySelector('.home_goals').value = bet[0];
         item.querySelector('.away_goals').value = bet[1];
         item.dataset.id = match.id;
@@ -177,4 +177,4 @@ class Request
         
 }
 
-const form = new BetForm(__data);
+new BetForm(__data);

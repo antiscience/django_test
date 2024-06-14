@@ -23,6 +23,7 @@ class Group(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
+    code = models.CharField(max_length=2, null=True)
     group = models.ForeignKey(Group, null=True, on_delete=models.CASCADE)
 
 class Match(models.Model):
@@ -49,9 +50,9 @@ class Match(models.Model):
         return {
             "id": self.id,
             "date": self.date.strftime(self.DATE_FORMAT),
-            "home_team": self.home_team.name,
+            "home_team": { "code": self.home_team.code, "name": self.home_team.name },
             "home_goals": self.home_goals,
-            "away_team": self.away_team.name,
+            "away_team": { "code": self.away_team.code, "name": self.away_team.name },
             "away_goals": self.away_goals,
             "match_type": self.match_type, 
             "tournament": self.tournament.name
