@@ -20,44 +20,25 @@ class Bets
         return this;
     }
 
-    update(bet)
+    async commit(data, action)
     {
-        const res = this.commit(bet, 'update');
-        if (res == false) 
-            return false;
-        const match = this.get(bet.id);
-        match.bet = [bet.home_goals, bet.away_goals];
-        this.View.update(match.id, bet);
-        return this;
-    }
-    
-    create(bet)
-    {
-        return this.update(bet);
-    }
+        const bet = Object.fromEntries(data); 
+        const url = this.endpoints[action];
+        const res = await (new Request(url, data).send());
 
-    delete(bet)
-    {
-        const res = this.commit(bet, 'delete');
-        if (res == false) 
-            return false;
-
-        delete this.get(bet.id).bet;
-        this.View.update(bet.id, null);
-        return this;
-    }
-
-    async commit(bet, action)
-    {
-        const id = action == "create" ? '' : bet.id; 
-        const url = this.endpoints[action] + id;
-        const json = await (new Request(url, bet).send());
-
-        if ("error" in json) 
+        if ("error" in res) 
         {
-            this.showError(json.error);
+            this.showError(res.error);
             return false;
         }
+    
+        const match = this.get(bet.match_id); 
+        if (action === 'delete')
+            delete match.bet;  
+        else
+            match.bet = [res.home_goals, res.away_goals];
+        this.View.update(match);
+
         return true;
     }
 
@@ -84,12 +65,8 @@ class BetForm
     constructor(data)
     {
         this.Model = new Bets(data.matches, data.endpoints);
-        this.View = new MatchList(data.matches);
+        this.View = new MatchList(data.matches, this);
         this.View.render();
-        this.View.container.querySelectorAll('article')
-            .forEach( item => item.addEventListener('click', e => 
-                this.showForm(e.currentTarget.dataset.id)));
-
         this.modal = new Modal(this.form, 'betForm');
         for (const btn of this.buttons) 
             btn.addEventListener('click', e => 
@@ -101,15 +78,20 @@ class BetForm
     async buttonEvent(e)
     {
         e.preventDefault(); 
-        const action = e.target.name;
-        const data = { "id": this.form.id.value, "home_goals": this.form.home_goals.value, "away_goals": this.form.away_goals.value }; //// FormData
-        this.Model[action](data);
+        const action = e.currentTarget.name; 
+        const data = new FormData(this.form);
+        this.Model.commit(data, action);
         this.hideForm();
     }
 
     showForm(id)
     {
-        this.form.id.value = id;
+        this.form.match_id.value = id;
+        const match = this.Model.get(id);
+        const is_new = !("bet" in match);
+        if (is_new) this.form.classList.add("new"); else this.form.classList.remove("new");
+        this.form.home_goals.value = is_new ? '' : match.bet[0];
+        this.form.away_goals.value = is_new ? '' : match.bet[1];
         this.modal.show();
         return this;
     }
@@ -126,15 +108,16 @@ class MatchList
 {
     container = document.getElementById("matchList");
     
-    constructor(matches)
+    constructor(matches, BetForm)
     {
         this.matches = matches;
+        this.BetForm = BetForm;
     }
 
     makeListItem(match)
     {
         const li = document.createElement('li');
-        const bet = "bet" in match ? match.bet : ['-', '-'];
+        const bet = "bet" in match ? match.bet : ['', ''];
 
         const item = document.getElementById("matchListItem")
                                                 .content
@@ -147,8 +130,18 @@ class MatchList
         item.querySelector('.home_goals').value = bet[0];
         item.querySelector('.away_goals').value = bet[1];
         item.dataset.id = match.id;
+        item.addEventListener('click', e => this.BetForm.showForm(e.currentTarget.dataset.id));
         li.appendChild(item);
         return li;
+    }
+
+    update(match)
+    {
+        const item = this.container.querySelector(`[data-id='${match.id}']`);
+        const bet = "bet" in match ? match.bet : ['', ''];
+
+        item.querySelector('.home_goals').value = bet[0];
+        item.querySelector('.away_goals').value = bet[1];
     }
 
     render()
@@ -165,7 +158,7 @@ class Request
     constructor(url, data)
     {
         this.url = url;
-        this.data = JSON.stringify(data);
+        this.data = data;
     }
 
     async send()
@@ -184,4 +177,4 @@ class Request
         
 }
 
-new BetForm(new Bets(__data.matches, __data.endpoints), new MatchList(__data.matches))
+const form = new BetForm(__data);

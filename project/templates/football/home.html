@@ -15,7 +15,7 @@
 
 <form name="betForm" class="hidden">
     {% csrf_token %}
-    <input type="hidden" name="id" value="" />
+    <input type="hidden" name="match_id" value="" />
 
     <fieldset class="grid">
         
@@ -63,8 +63,8 @@
             <span class="away_team"></span>
         </span>
         <span class="goals">
-            <input type="number" class="home_goals" value="" readonly />
-            <input type="number" class="away_goals" value="" readonly />
+            <input type="text" class="home_goals" value="" readonly />
+            <input type="text" class="away_goals" value="" readonly />
         </span>
     </article>
 </template>

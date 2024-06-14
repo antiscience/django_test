@@ -31,6 +31,23 @@ def create_bet(request):
     keys = ("match_id", "home_goals", "away_goals")
     data = { key:request.POST[key] for key in keys if key in request.POST }
     data["user_id"] = request.user.id
-    bet = Bet.objects.create(**data)
+    bet = Bet(**data)
+    bet.save()
 
     return JsonResponse(bet.serialize())
+
+@login_required
+def update_bet(request):
+    bet = Bet.objects.get(match_id = request.POST["match_id"], user_id = request.user.id)
+    bet.home_goals = request.POST["home_goals"]
+    bet.away_goals = request.POST["away_goals"]
+    bet.save()
+
+    return JsonResponse(bet.serialize())
+
+@login_required
+def delete_bet(request):
+    bet = Bet.objects.get(match_id = request.POST["match_id"], user_id = request.user.id)
+    bet.delete()
+
+    return JsonResponse({ "status": 1 })
