@@ -1,6 +1,3 @@
-html {
-    font-size: 14px;
-}
 
 body {
     background-color: #f9f9f9;
@@ -8,6 +5,10 @@ body {
 
 body > header {
     background-color: #ECEFF1;
+}
+
+header button[type="submit"] {
+    margin: 0;
 }
 
 main {
@@ -67,7 +68,7 @@ article {
 
 article > span {
     display: table-cell;
-    padding: 1em;
+    padding: 0.5em 0.5em 0;
 }
 
 article .team {
@@ -97,8 +98,11 @@ article .goals {
 
 article .home_goals, article .away_goals {
     display: inline-block;
-    width: 4em;
+    width: 3em;
+    background-color: #F5F5F5;
     margin: 0 1em;
+    padding: .5em 0;
+    border-radius: 10px;
     font-size: 1.5em;
     font-weight: 700;
     text-align: center;
@@ -106,7 +110,7 @@ article .home_goals, article .away_goals {
 
 article[data-expired="true"] {
     cursor: default;
-    background-color: #fafafa;
+    background-color: #CFD8DC;
 }
 
 .betForm {

@@ -24,16 +24,11 @@ def index(request):
         data.append(m)
     
     #return JsonResponse(data)
-    return render(request, "football/home.html", { "matches": json.dumps(data)  })
+    return render(request, "football/football.html", { "matches": json.dumps(data)  })
 
 
 @login_required
 def create_bet(request):
-    # keys = ("match", "home_goals", "away_goals")
-    # data = { key:request.POST[key] for key in keys if key in request.POST }
-    # bet = Bet(**data, user = request.user)
-    # bet.save()
-    # return JsonResponse(bet.serialize())
     try:
         form = BetForm(request.POST)
         if form.is_valid():
@@ -47,16 +42,28 @@ def create_bet(request):
 
 @login_required
 def update_bet(request):
-    bet = Bet.objects.get(match_id = request.POST["match"], user = request.user)
-    bet.home_goals = request.POST["home_goals"]
-    bet.away_goals = request.POST["away_goals"]
-    bet.save()
+    try:
+        form = BetForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            bet = Bet.objects.get(match = data["match"], user = request.user)
+            bet.home_goals = data["home_goals"] 
+            bet.away_goals = data["away_goals"]
+            bet.save(update_fields = data.keys())
+            resp = bet.serialize()
+        else:
+            resp = { "error": form.errors.get_json_data(escape_html = True) }
+        return JsonResponse(resp)
+    except Exception as e:
+        return JsonResponse({ "error": str(e) })
 
-    return JsonResponse(bet.serialize())
 
 @login_required
 def delete_bet(request):
-    bet = Bet.objects.get(match_id = request.POST["match"], user = request.user)
-    bet.delete()
+    try:
+        bet = Bet.objects.get(match_id = request.POST["match"], user = request.user)
+        bet.delete()
+        return JsonResponse({ "status": 1 })
+    except Exception as e:
+        return JsonResponse({ "error": str(e) })
 
-    return JsonResponse({ "status": 1 })

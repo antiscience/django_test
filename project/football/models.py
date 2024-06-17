@@ -74,7 +74,7 @@ class Bet(models.Model):
     def serialize(self):
         
         return {
-            "match": self.match.id,
+            "match_id": self.match.id,
             "home_goals": self.home_goals,
             "away_goals": self.away_goals,
         }
