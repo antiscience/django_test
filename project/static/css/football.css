@@ -3,7 +3,7 @@ html {
 }
 
 body {
-    background-color: #f8f8f8;
+    background-color: #f9f9f9;
 }
 
 body > header {
@@ -35,7 +35,6 @@ form.new button[name="create"], form button[name="update"], form button[name="de
 }
 
 #matchList {
-    width: 50em;
     max-width: 90%;
     font-size: 1em;
     counter-reset: li;
@@ -56,61 +55,72 @@ form.new button[name="create"], form button[name="update"], form button[name="de
     transform: translate(-120%, -50%);
 }
 
-#matchList article {
+article {
     cursor: pointer;
     background-color: #fff;
+    color: #424242;
     position: relative;
-    padding: 10px;
+    padding: 0;
     box-shadow: #E0E0E0 5px 5px 15px 0px;
     display: table;
-    width: 100%;
 }
 
-#matchList article > span {
+article > span {
     display: table-cell;
-    padding: 5px 10px;
+    padding: 1em;
 }
 
-#matchList .teams {
-    white-space: nowrap;
-    width: 80%;
-}
-
-#matchList .team {
+article .team {
     width: 10em;
-    white-space: nowrap;
-    margin: 0 1em;
+    text-align: center;
     font-weight: 500;
 }
 
-#matchList article .date {
-    width: 1em;
+article .date {
+    display: inline-block;
     white-space: nowrap;
+    padding: 1em;
     font-size: 0.8em;
-    margin-right: 1em;
     background-color: #f4f4f4;
     border-radius: 4px;
 }
 
-#matchList .goals {
-    white-space: nowrap;
-    width: 10%;
+article .home_team_flag, article .away_team_flag {
+    display: block;
+    margin: 1em auto;
 }
 
-#matchList .home_goals, #matchList .away_goals {
+article .goals {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+article .home_goals, article .away_goals {
     display: inline-block;
     width: 4em;
     margin: 0 1em;
+    font-size: 1.5em;
     font-weight: 700;
     text-align: center;
-    cursor: pointer;
 }
 
+article[data-expired="true"] {
+    cursor: default;
+    background-color: #fafafa;
+}
 
 .betForm {
-    width: 320px;
+    width: fit-content;
     background-color: #eee;
-    padding: 2.5em 2em 1em;
+    padding: 2.5em 2em 0;
+}
+
+.betForm article {
+    cursor: default;
+}
+
+.betForm article .goals {
+    display: none;
 }
 
 .betForm .close {

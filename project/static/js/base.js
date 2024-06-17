@@ -61,7 +61,7 @@ class Modal {
     { 
         e.preventDefault();
         const content = document.getElementById(el.dataset.content).innerHTML;
-        const cls = el.dataset.class ?? null;
+        const cls = el.dataset?.class ?? null;
         const modal = new Modal(content, cls);
         modal.show();
     })

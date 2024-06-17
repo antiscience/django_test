@@ -15,11 +15,9 @@
 
 <form name="betForm" class="hidden">
     {% csrf_token %}
-    <input type="hidden" name="match_id" value="" />
+    <input type="hidden" name="match" value="" />
 
-    <fieldset class="grid">
-        
-    </fieldset>
+    <fieldset class="grid" id="form_match_info"></fieldset>
 
     <fieldset class="grid">
         <input type="number" name="home_goals" min="0" />    
@@ -49,31 +47,32 @@
             "create": "{% url 'football:create_url' %}",
             "update": "{% url 'football:update_url' %}",
             "delete": "{% url 'football:delete_url' %}"
-        }
+        },
+        "static": {% get_static_prefix %}
     }
-</script>
-<script>
-    __static = {% get_static_prefix %}
 </script>
 {% endautoescape %}
 {% endblock %}
 
 {% block templates %}
 <template id ="matchListItem">
-    <article><span class="date"></span>
-        <span class="teams">
-            <span class="team">
-                <span class="home_team_name"></span>
-                <span class="home_team_flag"></span>
-            </span>
-            <span class="team">
-                <span class="away_team_name"></span>
-                <span class="away_team_flag"></span>
-            </span>
+    <article>
+        <span>
+            <span class="date"></span>
+        </span>
+        <span class="team">
+            <span class="home_team_name"></span>
+            <img class="home_team_flag" />
+        </span>
+        <span class="team_sep">:</span>
+        <span class="team">
+            <span class="away_team_name"></span>
+            <img class="away_team_flag" />
         </span>
         <span class="goals">
-            <input type="text" class="home_goals" value="" readonly />
-            <input type="text" class="away_goals" value="" readonly />
+            <span class="home_goals"></span>
+            <span class="goal_sep">:</span>
+            <span class="away_goals"></span>
         </span>
     </article>
 </template>

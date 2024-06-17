@@ -1,6 +1,6 @@
 
 # Create your models here.
-
+from datetime import datetime, date, time
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -37,6 +37,11 @@ class Match(models.Model):
         'FINAL'      : 'final'
     }
 
+    def is_expired(self) -> bool:
+        end_time = time(13, 0)
+        current_date = datetime.now()
+        return current_date > datetime.combine(self.date, end_time)
+
     date = models.DateField()
     home_team = models.ForeignKey(Team, related_name="home_team", on_delete=models.CASCADE)
     home_goals = models.IntegerField(null=False, default=0)
@@ -50,6 +55,7 @@ class Match(models.Model):
         return {
             "id": self.id,
             "date": self.date.strftime(self.DATE_FORMAT),
+            "expired": self.is_expired(),
             "home_team": { "code": self.home_team.code, "name": self.home_team.name },
             "home_goals": self.home_goals,
             "away_team": { "code": self.away_team.code, "name": self.away_team.name },
@@ -60,7 +66,7 @@ class Match(models.Model):
 
 
 class Bet(models.Model):
-    match = models.ForeignKey(Match,on_delete=models.CASCADE)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE)
     home_goals = models.IntegerField(null=False)
     away_goals = models.IntegerField(null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -68,9 +74,8 @@ class Bet(models.Model):
     def serialize(self):
         
         return {
-            "match_id": self.match.id,
+            "match": self.match.id,
             "home_goals": self.home_goals,
             "away_goals": self.away_goals,
         }
 
-    

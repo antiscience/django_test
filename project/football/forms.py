@@ -1,7 +1,9 @@
 from django import forms
-
+from .models import Match
 
 class BetForm(forms.Form):
-    match_id = forms.For
-    home_goals = forms.NumberInput(widget=forms.NumberInput, required = True)
-    away_goals = forms.NumberInput(widget=forms.NumberInput, required = True)
+
+    home_goals = forms.IntegerField(required = True, min_value = 0)
+    away_goals = forms.IntegerField(required = True, min_value = 0)
+    match = forms.ModelChoiceField(queryset=Match.objects.all())
+

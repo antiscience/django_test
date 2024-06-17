@@ -8,6 +8,7 @@ import json
 from django.http import JsonResponse
 
 from .models import Match, Team, Tournament, Group, Bet
+from .forms import BetForm
 from django.contrib.auth.decorators import login_required
 
 
@@ -19,7 +20,7 @@ def index(request):
     for match in matches:
         m = match.serialize()
         if match.id in bets:
-            m.update({ "bet": bets[match.id] })
+            m |= { "bet": bets[match.id] }
         data.append(m)
     
     #return JsonResponse(data)
@@ -28,17 +29,25 @@ def index(request):
 
 @login_required
 def create_bet(request):
-    keys = ("match_id", "home_goals", "away_goals")
-    data = { key:request.POST[key] for key in keys if key in request.POST }
-    data["user_id"] = request.user.id
-    bet = Bet(**data)
-    bet.save()
-
-    return JsonResponse(bet.serialize())
+    # keys = ("match", "home_goals", "away_goals")
+    # data = { key:request.POST[key] for key in keys if key in request.POST }
+    # bet = Bet(**data, user = request.user)
+    # bet.save()
+    # return JsonResponse(bet.serialize())
+    try:
+        form = BetForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            resp = Bet.objects.create(**data, user = request.user).serialize()
+        else:
+            resp = { "error": form.errors.get_json_data(escape_html = True) }
+        return JsonResponse(resp)
+    except Exception as e:
+        return JsonResponse({ "error": str(e) })
 
 @login_required
 def update_bet(request):
-    bet = Bet.objects.get(match_id = request.POST["match_id"], user_id = request.user.id)
+    bet = Bet.objects.get(match_id = request.POST["match"], user = request.user)
     bet.home_goals = request.POST["home_goals"]
     bet.away_goals = request.POST["away_goals"]
     bet.save()
@@ -47,7 +56,7 @@ def update_bet(request):
 
 @login_required
 def delete_bet(request):
-    bet = Bet.objects.get(match_id = request.POST["match_id"], user_id = request.user.id)
+    bet = Bet.objects.get(match_id = request.POST["match"], user = request.user)
     bet.delete()
 
     return JsonResponse({ "status": 1 })
