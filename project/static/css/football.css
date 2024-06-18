@@ -13,10 +13,15 @@ header button[type="submit"] {
 
 main {
     display: flex;
-    margin: 4em auto;
+    margin: 0 auto;
     justify-content: center;
     flex-direction: column;
     align-items: center;
+}
+
+.topline {
+    font-size: 3em;
+    padding: 1em;
 }
 
 form textarea {
