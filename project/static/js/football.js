@@ -55,6 +55,9 @@ class App
         if (is_new) this.form.classList.add("new"); else this.form.classList.remove("new");
         this.form.home_goals.value = is_new ? '' : match.bet[0];
         this.form.away_goals.value = is_new ? '' : match.bet[1];
+        this.form.home_goals.placeholder = match.home_team.name;
+        this.form.away_goals.placeholder = match.away_team.name;
+
         this.modal.show();
         return this;
     }

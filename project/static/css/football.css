@@ -89,6 +89,8 @@ article .date {
 article .home_team_flag, article .away_team_flag {
     display: block;
     margin: 1em auto;
+    padding: 3px;
+    border: 1px solid #ddd;
 }
 
 article .goals {
