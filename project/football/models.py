@@ -44,9 +44,9 @@ class Match(models.Model):
 
     date = models.DateField()
     home_team = models.ForeignKey(Team, related_name="home_team", on_delete=models.CASCADE)
-    home_goals = models.IntegerField(null=False, default=0)
+    home_goals = models.IntegerField(null=True, default=None)
     away_team = models.ForeignKey(Team, related_name="away_team", on_delete=models.CASCADE)
-    away_goals = models.IntegerField(null=False, default=0)
+    away_goals = models.IntegerField(null=True, default=None)
     match_type = models.CharField(null=True, max_length=20, choices=MATCH_TYPES) 
     tournament = models.ForeignKey(Tournament, null=True, on_delete=models.CASCADE)
 
@@ -67,15 +67,15 @@ class Match(models.Model):
 
 class Bet(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
-    home_goals = models.IntegerField(null=False)
-    away_goals = models.IntegerField(null=False)
+    home_bet = models.IntegerField(null=False)
+    away_bet = models.IntegerField(null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def serialize(self):
         
         return {
             "match_id": self.match.id,
-            "home_goals": self.home_goals,
-            "away_goals": self.away_goals,
+            "home_bet": self.home_bet,
+            "away_bet": self.away_bet,
         }
 

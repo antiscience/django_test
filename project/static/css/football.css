@@ -41,6 +41,7 @@ form.new button[name="create"], form button[name="update"], form button[name="de
 }
 
 #matchList {
+    display: table; 
     max-width: 90%;
     font-size: 1em;
     counter-reset: li;
@@ -49,6 +50,7 @@ form.new button[name="create"], form button[name="update"], form button[name="de
 
 #matchList li {
     position: relative;
+    display: table-row; 
 }
 
 #matchList li::before {
@@ -61,19 +63,29 @@ form.new button[name="create"], form button[name="update"], form button[name="de
     transform: translate(-120%, -50%);
 }
 
+#matchList #headrow  {
+    color: #eee;
+    background-color: #424242;
+    padding: 1em;
+    font-size: 1.2em;
+    font-weight: 700;
+    cursor: default;
+}
+
 article {
+    display: table;
+    width: 100%;
     cursor: pointer;
     background-color: #fff;
     color: #424242;
     position: relative;
     padding: 0;
     box-shadow: #E0E0E0 5px 5px 15px 0px;
-    display: table;
 }
 
 article > span {
     display: table-cell;
-    padding: 0.5em 0.5em 0;
+    padding: 0.5em 0.5em;
 }
 
 article .team {
@@ -98,12 +110,12 @@ article .home_team_flag, article .away_team_flag {
     border: 1px solid #ddd;
 }
 
-article .goals {
+article .bets, article .goals {
     white-space: nowrap;
     vertical-align: middle;
 }
 
-article .home_goals, article .away_goals {
+article .home_bet, article .away_bet, article .home_goals, article .away_goals {
     display: inline-block;
     width: 3em;
     background-color: #F5F5F5;
@@ -113,6 +125,11 @@ article .home_goals, article .away_goals {
     font-size: 1.5em;
     font-weight: 700;
     text-align: center;
+}
+
+article .home_bet, article .away_bet {
+    background-color: #424242;
+    color: #fff;
 }
 
 article[data-expired="true"] {
@@ -130,7 +147,7 @@ article[data-expired="true"] {
     cursor: default;
 }
 
-.betForm article .goals {
+.betForm article .bets, .betForm article .goals, .betForm article > span:first-child {
     display: none;
 }
 

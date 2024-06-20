@@ -10,7 +10,48 @@
 
 {% block content %}
 <div class="topline">Click & Bet</div>
-<ol id="matchList"></ol>
+<ol id="matchList">
+    <div>
+        <article id="headrow">
+            <span>Match results & Your bets</span>
+
+            <span class="goals">
+                <span class="goal_sep">Match result</span>
+            </span>
+            <span class="bets">
+                <span class="goal_sep">Your bet</span>
+            </span>
+        </article>
+    </div>
+    {% for match in matches %}
+    <li>
+        <article data-id="{{ match.id }}"  data-expired="{{ match.expired|lower }}">
+            <span>
+                <span class="date">{{ match.date }}</span>
+            </span>
+            <span class="team">
+                <span class="home_team_name">{{ match.home_team.name }}</span>
+                <img class="home_team_flag" src="{{ flag_cdn }}{{ match.home_team.code|lower }}.png" />
+            </span>
+            <span class="team_sep">vs</span>
+            <span class="team">
+                <span class="away_team_name">{{ match.away_team.name }}</span>
+                <img class="away_team_flag" src="{{ flag_cdn }}{{ match.away_team.code|lower }}.png" />
+            </span>
+            <span class="goals">
+                <span class="home_goals">{% if match.home_goals is not None %}{{ match.home_goals }}{% else %} – {% endif %}</span>
+                <span class="goal_sep">:</span>
+                <span class="away_goals">{% if match.away_goals is not None %}{{ match.away_goals }}{% else %} – {% endif %}</span>
+            </span>
+            <span class="bets">
+                <span class="home_bet">–</span>
+                <span class="goal_sep">:</span>
+                <span class="away_bet">–</span>
+            </span>
+        </article>
+    </li>
+    {% endfor %}
+</ol>
 
 <form name="betForm" class="hidden">
     {% csrf_token %}
@@ -19,8 +60,8 @@
     <fieldset class="grid" id="form_match_info"></fieldset>
 
     <fieldset class="grid">
-        <input type="number" name="home_goals" min="0" />    
-        <input type="number" name="away_goals" min="0" />    
+        <input type="number" name="home_bet" min="0" />    
+        <input type="number" name="away_bet" min="0" />    
     </fieldset>
 
     <fieldset>
@@ -39,10 +80,10 @@
 {% autoescape off %}
 <script>
     __data = 
-    { 
-        "matches": {{ matches }},
+    {
         "endpoints": 
         {
+            "get": "{% url 'football:get_url' %}",
             "create": "{% url 'football:create_url' %}",
             "update": "{% url 'football:update_url' %}",
             "delete": "{% url 'football:delete_url' %}"
@@ -72,6 +113,11 @@
             <span class="home_goals"></span>
             <span class="goal_sep">:</span>
             <span class="away_goals"></span>
+        </span>
+        <span class="bets">
+            <span class="home_bet"></span>
+            <span class="goal_sep">:</span>
+            <span class="away_bet"></span>
         </span>
     </article>
 </template>

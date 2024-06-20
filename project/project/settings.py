@@ -128,3 +128,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = "/"  
 LOGOUT_REDIRECT_URL = "/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+REFRESH_KEY = "0x$aerfegvw2(^l=wgtr=9e_0v!gh8_tgtrgtywf4j"
+FLAG_CDN = "https://flagcdn.com/h24/"

@@ -4,27 +4,25 @@ class App
     form = document.forms.betForm;
     buttons = this.form.querySelectorAll('button');
 
-    constructor(data)
+    constructor(endpoints)
     {
-        this.Model = new MatchData(data.matches, data.endpoints);
-        this.View = new MatchList();
+        this.View = new BetList();
+        this.Model = new BetData(endpoints, this.View); 
 
-        this.View.render(this.Model.matches);
-        this.View.container
-            .querySelectorAll('article')
-            .forEach( item => 
-            {
-                if (item.dataset.expired != 'true')
-                item.addEventListener('click', e => 
-                    this.showForm(e.currentTarget.dataset.id)
-            )}
+        [...this.View.container.querySelectorAll('article')]
+            .filter(item => item.dataset.expired != 'true')
+            .map(item => item.addEventListener('click', e => 
+                this.showForm(item.dataset.id)
+            )
         );
 
         this.modal = new Modal(this.form, 'betForm');
 
-        for (const btn of this.buttons) 
-            btn.addEventListener('click', e => 
-                this.buttonEvent(e));
+        [...this.buttons]
+            .map(btn => btn.addEventListener('click', e => 
+                this.buttonEvent(e)
+            )
+        );
 
         window.addEventListener('keydown', e => 
             { if (e.key == "Escape") this.hideForm() });
@@ -45,22 +43,42 @@ class App
     {
         this.form.reset();
         this.form.match.value = id;
-        const match = this.Model.get(id);
-        const item = this.View.makeMatchItem(match);
+        const bet = this.Model.get(id);
+        const match = this.View.getById(id).cloneNode(true);
         this.form
             .querySelector('#form_match_info') 
-            .replaceChildren(item);
+            .replaceChildren(match);
 
-        const is_new = !("bet" in match);
+        const is_new = !bet;
         if (is_new) this.form.classList.add("new"); else this.form.classList.remove("new");
-        this.form.home_goals.value = is_new ? '' : match.bet[0];
-        this.form.away_goals.value = is_new ? '' : match.bet[1];
-        this.form.home_goals.placeholder = match.home_team.name;
-        this.form.away_goals.placeholder = match.away_team.name;
+        this.form.home_bet.value = is_new ? '' : bet.home_bet;
+        this.form.away_bet.value = is_new ? '' : bet.away_bet;
+        this.form.home_bet.placeholder = this.form.querySelector('.home_team_name').textContent;
+        this.form.away_bet.placeholder = this.form.querySelector('.away_team_name').textContent;
 
         this.modal.show();
         return this;
+    }    makeMatchItem(match)
+    {
+        const item = document.getElementById("matchListItem")
+                                                .content
+                                                .cloneNode(true)
+                                                .querySelector('article');
+
+        item.querySelector('.date').textContent = match.date;
+        item.querySelector('.home_team_name').textContent = match.home_team.name;
+        item.querySelector('.away_team_name').textContent = match.away_team.name;
+        item.querySelector('.home_team_flag').src = `${this.flags}${match.home_team.code.toLowerCase()}.png`;
+        item.querySelector('.away_team_flag').src = `${this.flags}${match.away_team.code.toLowerCase()}.png`;
+        const goals = (match.home_goals == null || match.away_goals == null) ? ['-', '-'] : [match.home_goals, match.away_goals];
+        item.querySelector('.home_goals').textContent = goals[0];
+        item.querySelector('.away_goals').textContent = goals[1];
+
+        item.dataset.id = match.id;
+        item.dataset.expired = match.expired;
+        return item;
     }
+
 
     hideForm()
     {
@@ -69,45 +87,67 @@ class App
     }
 }
 
-class MatchData
+class BetData
 {
-    constructor(matches, endpoints)
+    constructor(endpoints, view)
     {
-        this.matches = matches;
         this.endpoints = endpoints;
-        this.View = new MatchList(this.matches);
+        this.View = view;
+        this.getBets()
+            .then(data => this.bets = data.bets)
+            .then(() => this.View.render(this.bets));
+    }
+
+    async getBets()
+    {
+        const url = this.endpoints['get'];
+        const bets = await (new Request(url).send());
+        return bets;
     }
 
     get(id)
     {
-        return this.matches.find( item => item.id == id );
+        return this.bets.find( bet => bet.match_id == id );
     }
 
-    sort()
+    getIndex(id)
     {
-        this.matches.sort((a, b) => new Date(a.date) - new Date(b.date));
-        return this;
+        return this.bets.indexOf( bet => bet.match_id == id );
     }
 
     async commit(data, action)
     {
-        const bet = Object.fromEntries(data); 
         const url = this.endpoints[action];
-        const res = await (new Request(url, data).send());
+        const resp = await (new Request(url, data).send());
 
-        if ("error" in res) 
+        if ("error" in resp) 
         {
-            this.showError(res.error);
+            this.showError(resp.error);
             return false;
         }
     
-        const match = this.get(bet.match); 
-        if (action === 'delete')
-            delete match.bet;  
-        else
-            match.bet = [res.home_goals, res.away_goals];
-        this.View.updateMatchItem(match);
+        const match_id = data.get("match"); 
+        let bet;
+        switch (action)
+        {
+            case "create":
+                bet = resp;
+                this.bets.push(bet);
+                break;
+            case "update":
+                bet = this.get(match_id); 
+                bet.home_bet = resp.home_bet;
+                bet.away_bet = resp.away_bet;
+                break;
+            case "delete":
+                const ind = this.getIndex(match_id);
+                bet = this.bets.splice(ind, 1)[0];
+                delete bet.home_bet;
+                delete bet.away_bet;
+                break;
+        }
 
+        this.View.updateMatchItem(bet);
         return true;
     }
 
@@ -125,74 +165,53 @@ class MatchData
 }
 
 
-class MatchList
+class BetList
 {
-    container = document.getElementById("matchList");
-    flags = 'https://flagcdn.com/h24/';
-    
+    container = document.getElementById("matchList");    
     constructor()
     {
     }
 
-    makeMatchItem(match)
+    getById(id)
     {
-        const item = document.getElementById("matchListItem")
-                                                .content
-                                                .cloneNode(true)
-                                                .querySelector('article');
+        return this.container.querySelector(`[data-id="${id}"]`);
+    }
 
-        item.querySelector('.date').textContent = match.date;
-        item.querySelector('.home_team_name').textContent = match.home_team.name;
-        item.querySelector('.away_team_name').textContent = match.away_team.name;
-        item.querySelector('.home_team_flag').src = `${this.flags}${match.home_team.code.toLowerCase()}.png`;
-        item.querySelector('.away_team_flag').src = `${this.flags}${match.away_team.code.toLowerCase()}.png`;
-        item.dataset.id = match.id;
-        item.dataset.expired = match.expired;
+    updateMatchItem(bet)
+    {
+        const item = this.getById(bet.match_id);
+        item.querySelector('.home_bet').textContent = "home_bet" in bet ? bet.home_bet : '–';
+        item.querySelector('.away_bet').textContent = "away_bet" in bet ? bet.away_bet : '–';
         return item;
     }
 
-    updateMatchItem(match)
+    render(bets)
     {
-        const item = this.container.querySelector(`[data-id="${match.id}"]`);
-        this.updateBetInfo(item, match);
-    }
-
-    updateBetInfo(item, match)
-    {
-        const bet = "bet" in match ? match.bet : ['', ''];
-        item.querySelector('.home_goals').textContent = bet[0];
-        item.querySelector('.away_goals').textContent = bet[1];
-        return item;
-    }
-
-    render(matches)
-    {
-        this.container.replaceChildren();
-        matches.forEach( match => 
-        {
-            const li = document.createElement('li');
-            const item = this.makeMatchItem(match);
-            li.appendChild(item);
-            this.container.insertAdjacentElement("beforeend", li);
-            this.updateBetInfo(item, match);
-        })
+        bets.map( bet => this.updateMatchItem(bet) );
+        return this;
     }
 }
 
 class Request
 {
-    constructor(url, data)
+    constructor(url, data = null)
     {
         this.url = url;
-        this.data = data;
+        this.data = data ;
+        this.method = this.data === null ? "GET" : "POST";
     }
 
     async send()
     {
-        try {
-            const response = await fetch(this.url, { method: "POST", body: this.data});
-            if (response.ok) return response.json();
-            throw new Error(`HTTP error! Status: ${response.status}`) 
+        try 
+        {
+            const options = this.method == "POST" ? { method: this.method, body: this.data } : null;
+            const response = await fetch(this.url, options);
+            
+            if (response.ok) 
+                return response.json();
+            else 
+                throw new Error(`HTTP error! Status: ${response.status}`);
         }
         catch (err) 
         {
@@ -203,4 +222,4 @@ class Request
         
 }
 
-const app = new App(__data);
+const app = new App(__data.endpoints);
