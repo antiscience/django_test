@@ -58,28 +58,8 @@ class App
 
         this.modal.show();
         return this;
-    }    makeMatchItem(match)
-    {
-        const item = document.getElementById("matchListItem")
-                                                .content
-                                                .cloneNode(true)
-                                                .querySelector('article');
-
-        item.querySelector('.date').textContent = match.date;
-        item.querySelector('.home_team_name').textContent = match.home_team.name;
-        item.querySelector('.away_team_name').textContent = match.away_team.name;
-        item.querySelector('.home_team_flag').src = `${this.flags}${match.home_team.code.toLowerCase()}.png`;
-        item.querySelector('.away_team_flag').src = `${this.flags}${match.away_team.code.toLowerCase()}.png`;
-        const goals = (match.home_goals == null || match.away_goals == null) ? ['-', '-'] : [match.home_goals, match.away_goals];
-        item.querySelector('.home_goals').textContent = goals[0];
-        item.querySelector('.away_goals').textContent = goals[1];
-
-        item.dataset.id = match.id;
-        item.dataset.expired = match.expired;
-        return item;
-    }
-
-
+    }    
+    
     hideForm()
     {
         this.modal.hide(false);
@@ -89,10 +69,10 @@ class App
 
 class BetData
 {
-    constructor(endpoints, view)
+    constructor(endpoints, betList)
     {
         this.endpoints = endpoints;
-        this.View = view;
+        this.View = betList;
         this.getBets()
             .then(data => this.bets = data.bets)
             .then(() => this.View.render(this.bets));
@@ -101,8 +81,14 @@ class BetData
     async getBets()
     {
         const url = this.endpoints['get'];
-        const bets = await (new Request(url).send());
-        return bets;
+        const resp = await (new Request(url).send());
+        if ("error" in resp) 
+        {
+            this.showError(resp.error);
+            throw new Error(`Got Error message, exiting...`);
+        }
+    
+        return resp;
     }
 
     get(id)
@@ -112,7 +98,7 @@ class BetData
 
     getIndex(id)
     {
-        return this.bets.indexOf( bet => bet.match_id == id );
+        return this.bets.findIndex( bet => bet.match_id == id );
     }
 
     async commit(data, action)
@@ -123,7 +109,7 @@ class BetData
         if ("error" in resp) 
         {
             this.showError(resp.error);
-            return false;
+            throw new Error(`Got Error message, exiting...`);
         }
     
         const match_id = data.get("match"); 
@@ -140,7 +126,7 @@ class BetData
                 bet.away_bet = resp.away_bet;
                 break;
             case "delete":
-                const ind = this.getIndex(match_id);
+                const ind = this.getIndex(resp.id);
                 bet = this.bets.splice(ind, 1)[0];
                 delete bet.home_bet;
                 delete bet.away_bet;
@@ -151,12 +137,13 @@ class BetData
         return true;
     }
 
-    showError(json)
+    showError(err)
     {
-        const errors = Object.entries(json)
-            .map(e => e[0] + ': ' + e[1].map(m => m.message)
-            .join(''))
-            .join('<br />');
+        const errors = typeof(err) == 'string' ? err : 
+            Object.keys(err)
+                .map(key => key + ': ' + err[key].map(m => m.message)
+                .join(', '))
+                .join('<br />');
 
         const modal = new Modal(errors, "error");
         modal.show();
@@ -208,15 +195,13 @@ class Request
             const options = this.method == "POST" ? { method: this.method, body: this.data } : null;
             const response = await fetch(this.url, options);
             
-            if (response.ok) 
-                return response.json();
-            else 
-                throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
         }
         catch (err) 
         {
             console.log(err);
             (new Modal(err, 'error')).show();
+            throw new Error(`HTTP error! Status: ${err}`);
         }
     }
         

@@ -9,7 +9,7 @@
 {% block app_name %}Football App{% endblock %}
 
 {% block content %}
-<div class="topline">Click & Bet</div>
+<div class="topline">Click & Bet {% if not user is None %}{{ user }}{% else %}Log in/Sign up{% endif %}</div>
 <ol id="matchList">
     <div>
         <article id="headrow">
@@ -81,6 +81,7 @@
 <script>
     __data = 
     {
+        "user": {% if not user is None %}"{{ user }}"{% else %}null{% endif %},
         "endpoints": 
         {
             "get": "{% url 'football:get_url' %}",
@@ -95,30 +96,4 @@
 {% endblock %}
 
 {% block templates %}
-<template id ="matchListItem">
-    <article>
-        <span>
-            <span class="date"></span>
-        </span>
-        <span class="team">
-            <span class="home_team_name"></span>
-            <img class="home_team_flag" />
-        </span>
-        <span class="team_sep">vs</span>
-        <span class="team">
-            <span class="away_team_name"></span>
-            <img class="away_team_flag" />
-        </span>
-        <span class="goals">
-            <span class="home_goals"></span>
-            <span class="goal_sep">:</span>
-            <span class="away_goals"></span>
-        </span>
-        <span class="bets">
-            <span class="home_bet"></span>
-            <span class="goal_sep">:</span>
-            <span class="away_bet"></span>
-        </span>
-    </article>
-</template>
 {% endblock %}

@@ -1,7 +1,7 @@
 
 # Create your views here.
 from datetime import datetime, date, time
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
 import json 
 from django.http import JsonResponse
@@ -11,21 +11,37 @@ from django.contrib.auth.decorators import login_required
 import requests
 
 
+def index(request, username = None):
+    try:
+        matches = Match.objects.all().order_by("date")
+        data = [ match.serialize() for match in matches ]
+        context = { 
+            "matches": data, 
+            "user": request.user.username if request.user.is_authenticated else None,
+            "flag_cdn": settings.FLAG_CDN  
+            }
+        return render(request, "football/football.html", context = context)
+    except Exception as e:
+        return render(request, "error.html", context = { "error": e }, status=500)
 
-def index(request):
-    matches = Match.objects.all().order_by("date")
-    data = [ match.serialize() for match in matches ]
-    context = { "matches": data, "flag_cdn": settings.FLAG_CDN  }
-    return render(request, "football/football.html", context = context)
+def user(request, username = None):
+    if username is None:
+        return redirect("football:home_url")
+    return index(request, username)
 
-@login_required
-def get_bets(request):
-    bets = Bet.objects.filter(user = request.user)
-    data = { "bets": [ bet.serialize() for bet in bets ] }
-    return JsonResponse(data)
+def get_bets(request, username = None):
+    try:
+        bets = Bet.objects.filter(user = request.user)
+        data = { "bets": [ bet.serialize() for bet in bets ] }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({ "error": str(e) }, status=500)
 
-@login_required
+
 def create_bet(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({ "error": "Please Log in or Sign up first" }, status=403)
+
     try:
         form = BetForm(request.POST)
         if form.is_valid():
@@ -35,10 +51,12 @@ def create_bet(request):
             resp = { "error": form.errors.get_json_data(escape_html = True) }
         return JsonResponse(resp)
     except Exception as e:
-        return JsonResponse({ "error": str(e) })
+        return JsonResponse({ "error": str(e) }, status=500)
 
-@login_required
 def update_bet(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({ "error": "Please Log in or Sign up first" }, status=403)
+
     try:
         form = BetForm(request.POST)
         if form.is_valid():
@@ -52,17 +70,21 @@ def update_bet(request):
             resp = { "error": form.errors.get_json_data(escape_html = True) }
         return JsonResponse(resp)
     except Exception as e:
-        return JsonResponse({ "error": str(e) })
+        return JsonResponse({ "error": str(e) }, status=500)
 
 
-@login_required
 def delete_bet(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({ "error": "Please Log in or Sign up first" }, status=403)
+
     try:
-        bet = Bet.objects.get(match_id = request.POST["match"], user = request.user)
+        match_id = request.POST["match"]
+        bet = Bet.objects.get(match_id = match_id, user = request.user)
         bet.delete()
-        return JsonResponse({ "status": 1 })
+        return JsonResponse({ "id": match_id })
     except Exception as e:
-        return JsonResponse({ "error": str(e) })
+        return JsonResponse({ "error": str(e) }, status=500)
+
 
 def refresh(request):
     DATE_FORMAT = '%Y-%m-%d'
@@ -94,7 +116,11 @@ def refresh(request):
 
             home_team_id = teams.get(name = home_team).id
             away_team_id = teams.get(name = away_team).id
+
+            print(away_team_id, home_team_id)
             match = matches.get(home_team_id = home_team_id, away_team_id = away_team_id)
+            print(match.away_team.id, match.home_team.id)
+
 
             match.home_goals = m["score"]["fullTime"]["home"]
             match.away_goals = m["score"]["fullTime"]["away"]
@@ -104,4 +130,4 @@ def refresh(request):
     except ValueError as e:
         return JsonResponse({ "error": str(e) }, status=403)
     except Exception as e:
-        return JsonResponse({ "error": str(e) })
+        return JsonResponse({ "error": str(e) }, status=500)

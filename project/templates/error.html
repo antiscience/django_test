@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%)">
+        Error encountered... <br>
+        Shit happens, wait a little and try again.
+        {{ error }}
+    </div>
+{% endblock %}
