@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-0x$agvw2(^l=w=9e_0v+!gh8_7)^6dq#syh!+hl)jtx##ywf4j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -127,6 +127,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom
 LOGIN_REDIRECT_URL = "/"  
 LOGOUT_REDIRECT_URL = "/"
+STATIC_ROOT = "/home/wunder/django_test/static"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 REFRESH_KEY = "0xaerfegvw2"
 FLAG_CDN = "https://flagcdn.com/h24/"
